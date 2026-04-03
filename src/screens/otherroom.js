@@ -43,16 +43,17 @@ export function mountOtherRoom({ targetUser }) {
   refreshPoops()
 
   // Auto-deposit if player carried a poop here from their own room
-  const entryState = getState()
-  if (entryState.holdingPoop && state.userId !== targetUser.id) {
+  if (state.holdingPoop && state.userId !== targetUser.id && canPoop()) {
     setState({ holdingPoop: false })
+    recordPoop() // optimistic — same cooldown as a normal poop
     // Brief delay so the screen renders first
     setTimeout(async () => {
       await createPoop(targetUser.id, state.userId)
-      recordPoop()
       broadcastPoop(targetUser.id, state.userId)
       await refreshPoops()
     }, 200)
+  } else if (state.holdingPoop && !canPoop()) {
+    setState({ holdingPoop: false }) // drop the poop, cooldown blocks deposit
   }
 
   // Cooldown interval to update button label
@@ -162,10 +163,10 @@ export function mountOtherRoom({ targetUser }) {
     visitorAction = 'poop'
     poopTimer = 900 // ms — show poop animation
     myPoop.reset()
+    recordPoop() // optimistic — prevents double-tap race on slow network
     renderButtons()
 
     await createPoop(targetUser.id, state.userId)
-    recordPoop()
     broadcastPoop(targetUser.id, state.userId)
     await refreshPoops()
   }

@@ -78,6 +78,8 @@ export function mountStreet() {
 
     scrollX += dir * WALK_SPEED * (delta / 1000)
     if (scrollX < 0) scrollX = 0
+    const maxScrollX = Math.max(0, (users.length - 1) * (64 + 16))
+    if (scrollX > maxScrollX) scrollX = maxScrollX
 
     const activeAnim = dir < 0 ? walkLAnim : dir > 0 ? walkRAnim : idleAnim
     activeAnim.tick(delta)
