@@ -24,7 +24,7 @@ export function navigate(screen, params = {}) {
 }
 
 async function boot() {
-  initRenderer()
+  await initRenderer()
   const state = getState()
   initFrame(state.frameColor)
 

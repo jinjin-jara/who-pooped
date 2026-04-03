@@ -1,116 +1,171 @@
 // src/canvas/sprites.js
 
-export const CHAR_PALETTE = {
-  W: '#eeeeee',
-  G: '#888888',
-  D: '#444444',
-  B: '#111111',
+// ── Per-animal color palettes ────────────────────────────
+// W = primary body, G = secondary/markings, D = accent detail, B = darkest (eyes/outline)
+
+export const CAT_PALETTE = {
+  W: '#F5CFA0', // warm cream
+  G: '#D49560', // orange tabby stripe
+  D: '#FF9090', // pink nose/inner ear
+  B: '#2A1A10', // dark brown-black eyes
+}
+
+export const RABBIT_PALETTE = {
+  W: '#F0E6EA', // soft white-pink
+  G: '#E0B8C8', // pink accent
+  D: '#D090A8', // deeper pink (inner ear)
+  B: '#882233', // wine-red eyes
+}
+
+export const BEAR_PALETTE = {
+  W: '#A08060', // warm brown
+  G: '#806848', // darker brown
+  D: '#C0A880', // light tan (muzzle)
+  B: '#1A1210', // near-black eyes
+}
+
+export const DOG_PALETTE = {
+  W: '#E8C870', // golden
+  G: '#C8A048', // darker gold
+  D: '#F0D890', // light cream (belly/muzzle)
+  B: '#201810', // dark eyes
+}
+
+export const DUCK_PALETTE = {
+  W: '#FFE060', // bright yellow
+  G: '#FF8C00', // orange beak/feet
+  D: '#FFF0A0', // light yellow (belly)
+  B: '#2A2010', // dark eyes
+}
+
+export const PENGUIN_PALETTE = {
+  W: '#2A2A3A', // dark blue-black body
+  G: '#E8E0E0', // white belly
+  D: '#F0A030', // orange beak/feet
+  B: '#111118', // dark eyes
+}
+
+// Unified palette for backwards-compat (used by shared animations)
+export const CHAR_PALETTE = CAT_PALETTE
+
+// Helper to get palette by character type
+export function getCharPalette(characterType) {
+  switch (characterType) {
+    case 'cat':     return CAT_PALETTE
+    case 'rabbit':  return RABBIT_PALETTE
+    case 'bear':    return BEAR_PALETTE
+    case 'dog':     return DOG_PALETTE
+    case 'duck':    return DUCK_PALETTE
+    case 'penguin': return PENGUIN_PALETTE
+    default:        return CAT_PALETTE
+  }
 }
 
 export const POOP_PALETTE = {
   P: '#5C3317',
   L: '#8B4513',
+  H: '#7A4A2A', // highlight
 }
 
 export const MOP_PALETTE = {
   W: '#eeeeee',
-  G: '#888888',
+  G: '#aaaaaa',
+  B: '#666666',
 }
 
-// ── CAT ──────────────────────────────────────────────────
+// ── CAT ── cream/orange tabby with pointed ears ──────────
 const catIdle0 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
+  '.GWWWWWWG.',
   '..WWWWWW..',
+  '.WWWWWWWW.',
+  '.WGWWWWGW.',
   '..WWWWWW..',
   '..WW..WW..',
   '..WW..WW..',
-  '..WW..WW..',
+  '..GG..GG..',
 ]
 
 const catIdle1 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
+  '.GWWWWWWG.',
   '..WWWWWW..',
+  '.WWWWWWWW.',
+  '.WGWWWWGW.',
   '..WWWWWW..',
   '.WW....WW.',
   '.WW....WW.',
-  '.WW....WW.',
+  '.GG....GG.',
 ]
 
 const catAngry0 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
-  '.DBBWWBBD.',
-  '.WWWGGWWW.',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
+  '.GBBWWBBG.',
+  '.WWWDDWWW.',
   '.WWGWWGWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
   '..WWWWWW..',
+  '.WWWWWWWW.',
+  '.WGWWWWGW.',
   '..WWWWWW..',
   '..WW..WW..',
   '..WW..WW..',
-  '..WW..WW..',
+  '..GG..GG..',
 ]
 
 const catWalkR0 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
+  '.GWWWWWWG.',
   '..WWWWWW..',
+  '.WWWWWWWW.',
+  '.WGWWWWGW.',
   '..WWWWWW..',
-  '..WWWWWWWW',
+  '..WWWWWWGG',
   '..WWWW....',
-  '..WWWW....',
+  '..GGGG....',
 ]
 
 const catWalkR1 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
+  '.GWWWWWWG.',
   '..WWWWWW..',
+  '.WWWWWWWW.',
+  '.WGWWWWGW.',
   '..WWWWWW..',
-  'WWWWWWWW..',
+  'GGWWWWWW..',
   '....WWWW..',
-  '....WWWW..',
+  '....GGGG..',
 ]
 
 const catPoop0 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
   '..WWWWWW..',
   '..WWWWWW..',
   '.WWWWWWWWW',
@@ -118,15 +173,16 @@ const catPoop0 = [
   '.WW....WW.',
   '.WW....WW.',
   '..........',
+  '..........',
 ]
 
 const catPoop1 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
+  '.WWWDDWWW.',
   '..WWWWWW..',
   '.WWWWWWWWW',
   'WWWWWWWWWW',
@@ -138,71 +194,71 @@ const catPoop1 = [
 ]
 
 const catClean0 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
+  '.GWWWWWWG.',
   '.WWWWWWWWW',
   '.WWWWWWWW.',
   '..WWWWWW..',
   '..WWWWWW..',
   '..WW..WW..',
   '..WW..WW..',
-  '..WW..WW..',
+  '..GG..GG..',
 ]
 
 const catClean1 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
+  '.GWWWWWWG.',
   'WWWWWWWWW.',
   '.WWWWWWWW.',
   '..WWWWWW..',
   '..WWWWWW..',
   '..WW..WW..',
   '..WW..WW..',
-  '..WW..WW..',
+  '..GG..GG..',
 ]
 
 const catKick0 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
+  '.GWWWWWWG.',
+  '..WWWWWW..',
   '.WWWWWWWW.',
   '..WWWWWW..',
   '..WWWWWW..',
-  '..WW..WWWW',
+  '..WW..WWGG',
   '..WW......',
-  '..WW......',
+  '..GG......',
 ]
 
 const catKick1 = [
+  'DWW..WWWD.',
   '.WWWWWWWW.',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
-  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
+  '.GWWWWWWG.',
+  '..WWWWWW..',
   '.WWWWWWWWW',
   '..WWWWWW..',
   '..WWWWWW..',
-  '..WW...WWW',
+  '..WW...GGG',
   '..WW......',
-  '..WW......',
+  '..GG......',
 ]
 
 const catKicked0 = [
@@ -211,8 +267,8 @@ const catKicked0 = [
   '..WWWWWWWW',
   '.WWWWWWWWW',
   'WBBWWBBWWW',
-  'WWWGGWWWWW',
-  'WWWWWWWWWW',
+  'WWWDDWWWWW',
+  'GWWWWWWGWW',
   'WWWWWWWWWW',
   '..WWWWWWWW',
   '....WWWWWW',
@@ -228,8 +284,8 @@ const catKicked1 = [
   '....WWWWWW',
   '...WWWWWWW',
   'WBBWWBBWWW',
-  'WWWGGWWWWW',
-  'WWWWWWWWWW',
+  'WWWDDWWWWW',
+  'GWWWWWWGWW',
   '..WWWWWWWW',
   '....WWWWWW',
   '......WWWW',
@@ -239,64 +295,112 @@ const catKicked1 = [
   '..........',
 ]
 
-// ── RABBIT ───────────────────────────────────────────────
+// ── RABBIT ── white-pink with tall ears ──────────────────
 const rabbitIdle0 = [
   '.WW....WW.',
+  '.WD....DW.',
   '.WW....WW.',
   '.WWWWWWWW.',
   'WWWWWWWWWW',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
+  '.WWWDDWWW.',
   '..WWWWWW..',
-  '..WWWWWW..',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
+  '.GGWWWWGG.',
   '..WW..WW..',
   '..WW..WW..',
-  '..WW..WW..',
+  '..GG..GG..',
 ]
-const rabbitIdle1 = rabbitIdle0
 
-// ── BEAR ─────────────────────────────────────────────────
-const bearIdle0 = [
+const rabbitIdle1 = [
+  '.WW....WW.',
+  '.WD....DW.',
+  '.WW....WW.',
+  '.WWWWWWWW.',
   'WWWWWWWWWW',
+  '.WBBWWBBW.',
+  '.WWWDDWWW.',
+  '..WWWWWW..',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
+  '.GGWWWWGG.',
+  '.WW....WW.',
+  '.WW....WW.',
+  '.GG....GG.',
+]
+
+// ── BEAR ── warm brown with round ears, stocky ──────────
+const bearIdle0 = [
+  'GW.WW.WG..',
   'WWWWWWWWWW',
   'WWWWWWWWWW',
   'WWWWWWWWWW',
   'WWBBWWBBWW',
-  'WWWWGGWWWW',
-  'WWWWWWWWWW',
+  'WWWWDDWWWW',
   'WWWWWWWWWW',
   '.WWWWWWWW.',
+  '.WWWWWWWW.',
+  '.WDDDDDDW.',
   '..WWWWWW..',
-  '..WWWWWW..',
   '.WW....WW.',
   '.WW....WW.',
-  '.WW....WW.',
+  '.GG....GG.',
 ]
-const bearIdle1 = bearIdle0
 
-// ── DOG ──────────────────────────────────────────────────
+const bearIdle1 = [
+  'GW.WW.WG..',
+  'WWWWWWWWWW',
+  'WWWWWWWWWW',
+  'WWWWWWWWWW',
+  'WWBBWWBBWW',
+  'WWWWDDWWWW',
+  'WWWWWWWWWW',
+  '.WWWWWWWW.',
+  '.WWWWWWWW.',
+  '.WDDDDDDW.',
+  '..WWWWWW..',
+  '..WW..WW..',
+  '..WW..WW..',
+  '..GG..GG..',
+]
+
+// ── DOG ── golden with floppy ears ──────────────────────
 const dogIdle0 = [
+  '..WWWWWW..',
   '.WWWWWWWW.',
   'WWWWWWWWWW',
-  'WWWWWWWWWW',
-  'W.WWWWWW.W',
+  'GG.WWWW.GG',
   '.WBBWWBBW.',
-  '.WWWGGWWW.',
   '.WWWWWWWW.',
-  '.WWWWWWWW.',
-  '.WWWWWWWW.',
+  '.WWDDDWWW.',
   '..WWWWWW..',
+  '.WWWWWWWW.',
+  '.WDWWWWDW.',
   '..WWWWWW..',
   '..WW..WW..',
   '..WW..WW..',
-  '..WW..WW..',
+  '..GG..GG..',
 ]
-const dogIdle1 = dogIdle0
 
-// ── DUCK ─────────────────────────────────────────────────
+const dogIdle1 = [
+  '..WWWWWW..',
+  '.WWWWWWWW.',
+  'WWWWWWWWWW',
+  'GG.WWWW.GG',
+  '.WBBWWBBW.',
+  '.WWWWWWWW.',
+  '.WWDDDWWW.',
+  '..WWWWWW..',
+  '.WWWWWWWW.',
+  '.WDWWWWDW.',
+  '..WWWWWW..',
+  '.WW....WW.',
+  '.WW....WW.',
+  '.GG....GG.',
+]
+
+// ── DUCK ── yellow with orange beak ─────────────────────
 const duckIdle0 = [
   '..WWWWWW..',
   '.WWWWWWWW.',
@@ -305,32 +409,85 @@ const duckIdle0 = [
   '.WBBWWBBW.',
   '.WWGGGGWW.',
   '.WWGGGGWW.',
-  '.WWWWWWWW.',
+  '..WWWWWW..',
+  '.DWWWWWWD.',
   '.WWWWWWWW.',
   '..WWWWWW..',
-  '..WWWWWW..',
   '..WW..WW..',
-  '..WW..WW..',
-  '..WW..WW..',
+  '..GG..GG..',
+  '..GG..GG..',
 ]
-const duckIdle1 = duckIdle0
+
+const duckIdle1 = [
+  '..WWWWWW..',
+  '.WWWWWWWW.',
+  'WWWWWWWWWW',
+  'WWWWWWWWWW',
+  '.WBBWWBBW.',
+  '.WWGGGGWW.',
+  '.WWGGGGWW.',
+  '..WWWWWW..',
+  '.DWWWWWWD.',
+  '.WWWWWWWW.',
+  '..WWWWWW..',
+  '.WW....WW.',
+  '.GG....GG.',
+  '.GG....GG.',
+]
+
+// ── PENGUIN ── dark body with white belly ────────────────
+const penguinIdle0 = [
+  '..WWWWWW..',
+  '.WWWWWWWW.',
+  'WWWWWWWWWW',
+  'WWWWWWWWWW',
+  '.WBBWWBBW.',
+  '.WWWDDWWW.',
+  '.WWGGGGWW.',
+  '.WWGGGGWW.',
+  '.WWGGGGWW.',
+  '..WGGGGW..',
+  '..WWWWWW..',
+  '..WW..WW..',
+  '..DD..DD..',
+  '..DD..DD..',
+]
+
+const penguinIdle1 = [
+  '..WWWWWW..',
+  '.WWWWWWWW.',
+  'WWWWWWWWWW',
+  'WWWWWWWWWW',
+  '.WBBWWBBW.',
+  '.WWWDDWWW.',
+  '.WWGGGGWW.',
+  '.WWGGGGWW.',
+  '.WWGGGGWW.',
+  '..WGGGGW..',
+  '..WWWWWW..',
+  '.WW....WW.',
+  '.DD....DD.',
+  '.DD....DD.',
+]
 
 // ── POOP ─────────────────────────────────────────────────
-// 6×7 sprite
+// 8×9 sprite — swirly poop with face
 export const POOP_SPRITE = [
-  '..LLL.',
-  '.PPPPL',
-  'PPPPPP',
-  'PPPPPP',
-  '.PPPP.',
-  '..PP..',
-  '......',
+  '...LL...',
+  '..LPPL..',
+  '.LHPPPL.',
+  '.PPPPPP.',
+  'PHPPPHPP',
+  'PPPPPPPP',
+  'PP.BB.PP',
+  'PPPHHHPP',
+  '.PPPPPP.',
 ]
 
 // ── MOP ──────────────────────────────────────────────────
-// 8×12 sprite
+// 8×12 sprite with handle detail
 export const MOP_SPRITE = [
-  '....W...',
+  '....B...',
   '....W...',
   '....W...',
   '....W...',
@@ -345,8 +502,6 @@ export const MOP_SPRITE = [
 ]
 
 // ── SPRITE REGISTRY ──────────────────────────────────────
-// Each animal reuses cat's action frames for poop/clean/kick/kicked
-// (body posture is the same, head differs)
 export const SPRITES = {
   cat: {
     idle:   [catIdle0, catIdle1],
@@ -369,10 +524,10 @@ export const SPRITES = {
     kicked: [catKicked0, catKicked1],
   },
   bear: {
-    idle:   [bearIdle0, bearIdle0],
+    idle:   [bearIdle0, bearIdle1],
     angry:  [bearIdle0],
-    walkR:  [bearIdle0, bearIdle0],
-    walkL:  [bearIdle0, bearIdle0],
+    walkR:  [bearIdle0, bearIdle1],
+    walkL:  [bearIdle1, bearIdle0],
     poop:   [catPoop0, catPoop1],
     clean:  [catClean0, catClean1],
     kick:   [catKick0, catKick1],
@@ -393,6 +548,16 @@ export const SPRITES = {
     angry:  [duckIdle0],
     walkR:  [duckIdle0, duckIdle1],
     walkL:  [duckIdle1, duckIdle0],
+    poop:   [catPoop0, catPoop1],
+    clean:  [catClean0, catClean1],
+    kick:   [catKick0, catKick1],
+    kicked: [catKicked0, catKicked1],
+  },
+  penguin: {
+    idle:   [penguinIdle0, penguinIdle1],
+    angry:  [penguinIdle0],
+    walkR:  [penguinIdle0, penguinIdle1],
+    walkL:  [penguinIdle1, penguinIdle0],
     poop:   [catPoop0, catPoop1],
     clean:  [catClean0, catClean1],
     kick:   [catKick0, catKick1],

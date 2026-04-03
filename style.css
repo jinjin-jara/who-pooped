@@ -1,4 +1,4 @@
-/* style.css */
+/* style.css — Tamagotchi-style game device */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
@@ -18,41 +18,123 @@ body {
   overflow: hidden;
 }
 
+/* ══════════════════════════════════════════════════════════
+   DEVICE BODY — egg-shaped tamagotchi
+   ══════════════════════════════════════════════════════════ */
 #phone-frame {
   --frame-color: #ff69b4;
-  --frame-dark: color-mix(in srgb, var(--frame-color) 70%, black);
-  --frame-light: color-mix(in srgb, var(--frame-color) 60%, white);
-  width: min(340px, 92vw);
-  background: var(--frame-color);
-  border-radius: 36px;
-  padding: 12px 10px 16px;
+  --frame-dark: color-mix(in srgb, var(--frame-color) 60%, black);
+  --frame-mid: color-mix(in srgb, var(--frame-color) 80%, black);
+  --frame-light: color-mix(in srgb, var(--frame-color) 50%, white);
+  --frame-glow: color-mix(in srgb, var(--frame-color) 30%, white);
+  --frame-pale: color-mix(in srgb, var(--frame-color) 25%, white);
+  --frame-inner: color-mix(in srgb, var(--frame-color) 88%, white);
+
+  position: relative;
+  width: min(320px, 88vw);
+  background:
+    radial-gradient(ellipse at 50% 30%, var(--frame-inner) 0%, var(--frame-color) 60%, var(--frame-mid) 100%);
+  border-radius: 48% 48% 44% 44% / 32% 32% 28% 28%;
+  padding: 8px 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.2);
+  align-items: center;
+  gap: 4px;
+  box-shadow:
+    0 12px 48px rgba(0,0,0,0.5),
+    0 4px 12px rgba(0,0,0,0.3),
+    inset 0 3px 6px var(--frame-glow),
+    inset 0 -3px 8px var(--frame-dark);
+  border: 3px solid var(--frame-dark);
 }
 
-#phone-top {
+/* ── Chain loop at top ── */
+#chain-loop {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 20px;
+  border: 4px solid var(--frame-dark);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  background: transparent;
+}
+#chain-loop::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 14px;
+  border: 3px solid var(--frame-mid);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+}
+
+/* ── Top: logo + stars ── */
+#device-top {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 16px 0 6px;
+  width: 100%;
 }
 
-#speaker {
-  width: 40px;
-  height: 6px;
-  background: var(--frame-dark);
-  border-radius: 3px;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+#device-logo {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: var(--frame-dark);
+  text-shadow: 0 1px 0 var(--frame-glow);
 }
 
+
+/* ── Screen bezel ── inner recessed area around screen ── */
+#screen-bezel {
+  width: 82%;
+  background:
+    radial-gradient(ellipse at 50% 40%, var(--frame-pale) 0%, var(--frame-light) 100%);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow:
+    inset 0 2px 6px rgba(0,0,0,0.25),
+    inset 0 -1px 2px var(--frame-glow),
+    0 1px 0 var(--frame-glow);
+  border: 2px solid var(--frame-dark);
+}
+
+/* ── Screen ── */
 #screen-area {
   position: relative;
   background: #111;
   border-radius: 8px;
   overflow: hidden;
   aspect-ratio: 2/3;
-  border: 3px solid var(--frame-dark);
+  border: 2px solid #222;
+  box-shadow:
+    inset 0 0 12px rgba(0,0,0,0.9),
+    inset 0 2px 4px rgba(0,0,0,0.5),
+    0 1px 0 rgba(255,255,255,0.1);
+}
+
+/* Subtle scanline overlay */
+#screen-area::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.04) 3px,
+    rgba(0,0,0,0.04) 6px
+  );
+  pointer-events: none;
+  z-index: 1;
 }
 
 #game-canvas {
@@ -66,14 +148,92 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 2;
 }
 #ui-overlay > * { pointer-events: auto; }
 
+/* ── Decorative divider row ── */
+#deco-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 3px 0 1px;
+}
+
+.deco-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--frame-dark);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.3);
+}
+
+
+/* ── Fixed 3-button controller ── ◀ ■ ▶ ── */
+#controller {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 0 4px;
+}
+
+.ctrl-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 40% 35%, var(--frame-mid) 0%, var(--frame-dark) 100%);
+  border: 2px solid var(--frame-dark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+  text-indent: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s, box-shadow 0.08s;
+  box-shadow:
+    0 3px 0px var(--frame-dark),
+    0 4px 8px rgba(0,0,0,0.35),
+    inset 0 2px 2px rgba(255,255,255,0.15),
+    inset 0 -2px 3px rgba(0,0,0,0.3);
+}
+.ctrl-btn:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 1px 0px var(--frame-dark),
+    0 1px 3px rgba(0,0,0,0.3),
+    inset 0 2px 4px rgba(0,0,0,0.4);
+}
+.ctrl-btn-center {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  border-radius: 10px;
+}
+.ctrl-btn-center::after {
+  content: '';
+  display: block;
+  width: 9px;
+  height: 9px;
+  background: white;
+  border-radius: 2px;
+  margin: 0 auto;
+}
+
+/* ── Dynamic action buttons (hidden by default, shown by screens) ── */
 #phone-bottom {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 4px 8px;
+  gap: 6px;
+  padding: 0;
+  width: 100%;
 }
 
 .btn-row {
@@ -81,34 +241,51 @@ body {
   justify-content: center;
   gap: 10px;
 }
+.btn-row:empty { display: none; }
 
 .action-btn {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
-  background: var(--frame-dark);
-  border: 2px solid var(--frame-light);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 40% 35%, var(--frame-mid) 0%, var(--frame-dark) 100%);
+  border: 2px solid var(--frame-dark);
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   color: white;
-  font-size: 22px;
+  font-size: 16px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.1s, background 0.1s;
+  transition: transform 0.08s, box-shadow 0.08s;
+  box-shadow:
+    0 3px 0px var(--frame-dark),
+    0 4px 6px rgba(0,0,0,0.35),
+    inset 0 2px 2px rgba(255,255,255,0.12),
+    inset 0 -2px 3px rgba(0,0,0,0.3);
 }
-.action-btn:active { transform: scale(0.92); background: var(--frame-light); }
+.action-btn:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 1px 0px var(--frame-dark),
+    0 1px 3px rgba(0,0,0,0.3),
+    inset 0 2px 4px rgba(0,0,0,0.4);
+}
 .action-btn .btn-label {
-  font-size: 8px;
-  color: rgba(255,255,255,0.7);
+  font-size: 6px;
+  color: rgba(255,255,255,0.5);
   font-family: 'Courier New', monospace;
+  line-height: 1;
 }
-.action-btn:disabled { opacity: 0.4; pointer-events: none; }
+.action-btn:disabled { opacity: 0.3; pointer-events: none; }
 
-/* Color themes */
+
+/* ══════════════════════════════════════════════════════════
+   COLOR THEMES
+   ══════════════════════════════════════════════════════════ */
 .theme-pink    { --frame-color: #ff69b4; }
 .theme-purple  { --frame-color: #9b59b6; }
 .theme-orange  { --frame-color: #f39c12; }

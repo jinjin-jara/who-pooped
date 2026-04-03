@@ -1,14 +1,16 @@
 // src/screens/onboarding.js
 import { setState } from '../state.js'
 import { createUser, fetchUserByNickname } from '../db.js'
-import { initFrame } from '../frame.js'
+// import { initFrame } from '../frame.js'
 import { navigate } from '../main.js'
 import { clear, drawRect, drawSprite, drawText } from '../canvas/renderer.js'
-import { SPRITES, CHAR_PALETTE } from '../canvas/sprites.js'
+import { SPRITES, getCharPalette } from '../canvas/sprites.js'
+import { drawRoomBackground } from '../canvas/scenes/room.js'
 import { startLoop } from '../canvas/gameloop.js'
 import { Animator } from '../canvas/animator.js'
+import { bindController, unbindController } from '../controller.js'
 
-const CHARACTERS = ['cat', 'rabbit', 'bear', 'dog', 'duck']
+const CHARACTERS = ['cat', 'rabbit', 'bear', 'dog', 'duck', 'penguin']
 const COLORS = ['pink', 'purple', 'orange', 'mint', 'blue', 'yellow']
 const COLOR_HEX = {
   pink: '#ff69b4', purple: '#9b59b6', orange: '#f39c12',
@@ -20,9 +22,8 @@ const ROOM_LABELS = { oneroom: '원룸', minimal: '미니멀', kids: '어린이�
 export function mountOnboarding() {
   let step = 'nickname'
   let nickname = ''
-  let selectedChar = 'cat'
-  let selectedColor = 'pink'
-  let selectedRoom = 'oneroom'
+  let charIdx = 0
+  let roomIdx = 0
   let loading = false
 
   const overlay = document.getElementById('ui-overlay')
@@ -60,7 +61,12 @@ export function mountOnboarding() {
     background:#444;border:none;color:#eee;font-family:monospace;font-size:13px;
     padding:10px 0;border-radius:6px;cursor:pointer;width:100%;
   `
-  confirmBtn.onclick = async () => {
+  confirmBtn.onclick = handleNicknameConfirm
+
+  form.append(title, input, errDiv, confirmBtn)
+  overlay.appendChild(form)
+
+  async function handleNicknameConfirm() {
     const val = input.value.trim()
     if (!val) { errDiv.textContent = '닉네임을 입력해줘!'; return }
     if (loading) return
@@ -78,14 +84,55 @@ export function mountOnboarding() {
     loading = false
     overlay.innerHTML = ''
     step = 'character'
+    setupController()
   }
-
-  form.append(title, input, errDiv, confirmBtn)
-  overlay.appendChild(form)
 
   // ── Animators for character preview ─────────────────────
   const charAnimators = {}
   CHARACTERS.forEach(c => { charAnimators[c] = new Animator(SPRITES[c].idle, 6) })
+
+  // ── Controller binding per step ─────────────────────────
+  function setupController() {
+    bindController({
+      onLeft:   () => handleNav(-1),
+      onRight:  () => handleNav(1),
+      onAction: () => handleNext(),
+    })
+  }
+
+  function handleNav(dir) {
+    if (step === 'character') {
+      charIdx = (charIdx + dir + CHARACTERS.length) % CHARACTERS.length
+    } else if (step === 'roomstyle') {
+      roomIdx = (roomIdx + dir + ROOM_STYLES.length) % ROOM_STYLES.length
+    }
+  }
+
+  async function handleNext() {
+    if (step === 'character') { step = 'roomstyle'; return }
+    if (step === 'roomstyle') {
+      if (loading) return
+      loading = true
+      try {
+        const user = await createUser({
+          nickname,
+          characterType: CHARACTERS[charIdx],
+          frameColor: 'pink',
+          roomStyle: ROOM_STYLES[roomIdx],
+        })
+        setState({
+          userId: user.id,
+          nickname,
+          characterType: CHARACTERS[charIdx],
+          frameColor: 'pink',
+          roomStyle: ROOM_STYLES[roomIdx],
+        })
+        navigate('myroom')
+      } catch {
+        loading = false
+      }
+    }
+  }
 
   // ── Canvas render ────────────────────────────────────────
   function tick(delta) {
@@ -98,126 +145,70 @@ export function mountOnboarding() {
     clear('#111111')
 
     if (step === 'character') {
-      drawText('캐릭터 선택', 80, 10, { color: '#aaa', align: 'center', size: 7 })
-      CHARACTERS.forEach((ch, i) => {
-        const col = i % 3
-        const row = Math.floor(i / 3)
-        const x = 12 + col * 48
-        const y = 30 + row * 60
-        if (ch === selectedChar) drawRect(x - 2, y - 2, 44, 56, '#333333')
-        drawSprite(charAnimators[ch].currentFrame(), CHAR_PALETTE, x + 2, y + 2, 2)
-        drawText(ch, x + 20, y + 46, { color: ch === selectedChar ? '#fff' : '#666', align: 'center', size: 5 })
-      })
-    }
+      drawText('캐릭터 선택', 80, 8, { color: '#aaa', align: 'center', size: 7 })
+      drawText('◀ ▶ 선택  ■ 확인', 80, 225, { color: '#555', align: 'center', size: 5 })
 
-    if (step === 'color') {
-      drawText('프레임 색상', 80, 10, { color: '#aaa', align: 'center', size: 7 })
-      COLORS.forEach((c, i) => {
-        const col = i % 3
-        const row = Math.floor(i / 3)
-        const x = 16 + col * 46
-        const y = 38 + row * 54
-        if (c === selectedColor) drawRect(x - 3, y - 3, 42, 42, '#ffffff')
-        drawRect(x, y, 36, 36, COLOR_HEX[c])
-        drawText(c, x + 18, y + 40, { color: '#888', align: 'center', size: 5 })
-      })
+      const ch = CHARACTERS[charIdx]
+      // Big centered preview
+      drawRect(48, 40, 64, 80, '#1a1a2a')
+      drawSprite(charAnimators[ch].currentFrame(), getCharPalette(ch), 50, 48, 4)
+      drawText(ch, 80, 126, { color: '#fff', align: 'center', size: 7 })
+
+      // Small previews on sides
+      const prevIdx = (charIdx - 1 + CHARACTERS.length) % CHARACTERS.length
+      const nextIdx = (charIdx + 1) % CHARACTERS.length
+      drawSprite(charAnimators[CHARACTERS[prevIdx]].currentFrame(), getCharPalette(CHARACTERS[prevIdx]), 4, 64, 2)
+      drawSprite(charAnimators[CHARACTERS[nextIdx]].currentFrame(), getCharPalette(CHARACTERS[nextIdx]), 128, 64, 2)
+      // Arrows
+      drawText('<', 18, 54, { color: '#555', size: 8 })
+      drawText('>', 140, 54, { color: '#555', size: 8 })
     }
 
     if (step === 'roomstyle') {
-      drawText('방 스타일', 80, 10, { color: '#aaa', align: 'center', size: 7 })
-      ROOM_STYLES.forEach((s, i) => {
-        const x = 10 + i * 50
-        const y = 30
-        if (s === selectedRoom) drawRect(x - 2, y - 2, 44, 86, '#333333')
-        // simple thumbnail
-        drawRect(x, y, 40, 80, '#0d0d0d')
-        drawRect(x, y + 48, 40, 32, '#181818')
-        drawRect(x, y + 48, 40, 1, '#2a2a2a')
-        if (s === 'oneroom') {
-          drawRect(x + 10, y + 4, 20, 16, '#1a1a2e') // window
-        } else if (s === 'minimal') {
-          drawRect(x + 2, y + 30, 36, 14, '#1a1a1a') // sofa
-        } else if (s === 'kids') {
-          drawRect(x + 2, y + 4, 16, 46, '#252525') // bunkbed
-        }
-        drawText(ROOM_LABELS[s], x + 20, y + 84, { color: s === selectedRoom ? '#fff' : '#666', align: 'center', size: 5 })
+      const s = ROOM_STYLES[roomIdx]
+
+      // Draw the actual full room as background preview
+      drawRoomBackground(s)
+
+      // Draw the selected character standing in the room
+      const ch = CHARACTERS[charIdx]
+      drawSprite(charAnimators[ch].currentFrame(), getCharPalette(ch), 62, 136, 2)
+
+      // Overlay UI on top
+      drawRect(0, 0, 160, 22, 'rgba(0,0,0,0.7)')
+      drawText('방 스타일', 80, 4, { color: '#aaa', align: 'center', size: 7 })
+      drawText(ROOM_LABELS[s], 80, 14, { color: '#fff', align: 'center', size: 5 })
+
+      // Bottom hint + dots
+      drawRect(0, 210, 160, 30, 'rgba(0,0,0,0.7)')
+      drawText('◀ ▶ 선택  ■ 확인', 80, 225, { color: '#555', align: 'center', size: 5 })
+
+      ROOM_STYLES.forEach((_, i) => {
+        const dx = 80 + (i - ROOM_STYLES.length / 2 + 0.5) * 12
+        drawRect(dx - 2, 215, 5, 5, i === roomIdx ? '#fff' : '#444')
       })
     }
   }
 
-  // ── Canvas click/touch to select ─────────────────────────
+  // ── Canvas tap (fallback for selection) ──────────────────
   const canvas = document.getElementById('game-canvas')
   function onCanvasTap(e) {
     e.preventDefault()
     const rect = canvas.getBoundingClientRect()
     const clientX = e.touches ? e.touches[0].clientX : e.clientX
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY
     const vx = ((clientX - rect.left) / rect.width) * 160
-    const vy = ((clientY - rect.top) / rect.height) * 240
 
-    if (step === 'character') {
-      CHARACTERS.forEach((ch, i) => {
-        const col = i % 3
-        const row = Math.floor(i / 3)
-        const x = 12 + col * 48
-        const y = 30 + row * 60
-        if (vx >= x - 2 && vx <= x + 42 && vy >= y - 2 && vy <= y + 54) selectedChar = ch
-      })
-    }
-    if (step === 'color') {
-      COLORS.forEach((c, i) => {
-        const col = i % 3
-        const row = Math.floor(i / 3)
-        const x = 16 + col * 46
-        const y = 38 + row * 54
-        if (vx >= x && vx <= x + 36 && vy >= y && vy <= y + 36) {
-          selectedColor = c
-          initFrame(c)
-        }
-      })
-    }
-    if (step === 'roomstyle') {
-      ROOM_STYLES.forEach((s, i) => {
-        const x = 10 + i * 50
-        if (vx >= x - 2 && vx <= x + 42) selectedRoom = s
-      })
-    }
+    if (vx < 60) handleNav(-1)
+    else if (vx > 100) handleNav(1)
+    else handleNext()
   }
   canvas.addEventListener('click', onCanvasTap)
   canvas.addEventListener('touchstart', onCanvasTap, { passive: false })
 
-  // ── Next button ──────────────────────────────────────────
-  const nextBtn = document.createElement('button')
-  nextBtn.className = 'action-btn'
-  nextBtn.style.cssText += 'width:140px;font-size:14px;'
-  nextBtn.innerHTML = '다음 →'
-  btnRow.appendChild(nextBtn)
-
-  nextBtn.onclick = async () => {
-    if (step === 'character') { step = 'color'; return }
-    if (step === 'color') { step = 'roomstyle'; return }
-    if (step === 'roomstyle') {
-      nextBtn.disabled = true
-      nextBtn.innerHTML = '저장 중...'
-      try {
-        const user = await createUser({
-          nickname,
-          characterType: selectedChar,
-          frameColor: selectedColor,
-          roomStyle: selectedRoom,
-        })
-        setState({ userId: user.id, nickname, characterType: selectedChar, frameColor: selectedColor, roomStyle: selectedRoom })
-        navigate('myroom')
-      } catch {
-        nextBtn.disabled = false
-        nextBtn.innerHTML = '다음 →'
-      }
-    }
-  }
-
   startLoop(tick, render)
 
   return () => {
+    unbindController()
     canvas.removeEventListener('click', onCanvasTap)
     canvas.removeEventListener('touchstart', onCanvasTap)
     overlay.innerHTML = ''

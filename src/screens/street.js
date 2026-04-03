@@ -10,6 +10,7 @@ import { SPRITES } from '../canvas/sprites.js'
 import { Animator } from '../canvas/animator.js'
 import { startLoop } from '../canvas/gameloop.js'
 import { navigate } from '../main.js'
+import { bindController, unbindController } from '../controller.js'
 
 const WALK_SPEED = 40    // virtual px per second
 const CHAR_SCREEN_X = 60 // character's fixed x position on screen
@@ -52,33 +53,34 @@ export function mountStreet() {
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
 
-  // ── Touch buttons ──────────────────────────────────────
-  let touchDir = 0
-  const leftBtn  = makeBtn('◀', '', false, null)
-  const rightBtn = makeBtn('▶', '', false, null)
-  const homeBtn  = makeBtn('🏠', '집', false, () => navigate('myroom'))
-
-  leftBtn.addEventListener('touchstart',  () => { touchDir = -1 }, { passive: true })
-  leftBtn.addEventListener('touchend',    () => { if (touchDir === -1) touchDir = 0 })
-  leftBtn.addEventListener('mousedown',   () => { touchDir = -1 })
-  leftBtn.addEventListener('mouseup',     () => { if (touchDir === -1) touchDir = 0 })
-  rightBtn.addEventListener('touchstart', () => { touchDir = 1 }, { passive: true })
-  rightBtn.addEventListener('touchend',   () => { if (touchDir === 1) touchDir = 0 })
-  rightBtn.addEventListener('mousedown',  () => { touchDir = 1 })
-  rightBtn.addEventListener('mouseup',    () => { if (touchDir === 1) touchDir = 0 })
-
-  btnRow.append(leftBtn, rightBtn, homeBtn)
+  // ── Controller: ◀ = walk left, ▶ = walk right, ■ = enter house / go home
+  let ctrlDir = 0
+  bindController({
+    onLeft:    () => { ctrlDir = -1 },
+    onLeftUp:  () => { if (ctrlDir === -1) ctrlDir = 0 },
+    onRight:   () => { ctrlDir = 1 },
+    onRightUp: () => { if (ctrlDir === 1) ctrlDir = 0 },
+    onAction:  () => {
+      if (nearHouse) {
+        if (nearHouse.id === state.userId) navigate('myroom')
+        else navigate('otherroom', { targetUser: nearHouse })
+      } else {
+        navigate('myroom')
+      }
+    },
+  })
 
   // ── Tick ────────────────────────────────────────────────
   function tick(delta) {
-    let dir = touchDir
+    let dir = ctrlDir
     if (keysDown.has('ArrowLeft') || keysDown.has('a')) dir = -1
     if (keysDown.has('ArrowRight') || keysDown.has('d')) dir = 1
     moveDir = dir
 
     scrollX += dir * WALK_SPEED * (delta / 1000)
-    if (scrollX < 0) scrollX = 0
-    const maxScrollX = Math.max(0, (users.length - 1) * (64 + 16))
+    const minScrollX = -CHAR_SCREEN_X  // allow reaching first house
+    const maxScrollX = Math.max(0, users.length * (64 + 16) - CHAR_SCREEN_X)
+    if (scrollX < minScrollX) scrollX = minScrollX
     if (scrollX > maxScrollX) scrollX = maxScrollX
 
     const activeAnim = dir < 0 ? walkLAnim : dir > 0 ? walkRAnim : idleAnim
@@ -105,7 +107,7 @@ export function mountStreet() {
     })
 
     const activeAnim = moveDir < 0 ? walkLAnim : moveDir > 0 ? walkRAnim : idleAnim
-    drawPlayerOnStreet(activeAnim.currentFrame(), CHAR_SCREEN_X)
+    drawPlayerOnStreet(activeAnim.currentFrame(), CHAR_SCREEN_X, state.characterType, state.nickname)
 
     // Holding poop indicator
     if (state.holdingPoop) {
@@ -116,22 +118,21 @@ export function mountStreet() {
     // House entry hint
     if (nearHouse) {
       const isOwn = nearHouse.id === state.userId
-      const hint = isOwn ? '🏠 내 집' : `👆 ${nearHouse.nickname}네`
+      const hint = isOwn ? '🏠 내 집' : `${nearHouse.nickname}네`
       drawRect(0, 220, 160, 20, 'rgba(0,0,0,0.7)')
-      drawText(hint + ' — 탭해서 입장', 80, 223, { color: '#fff', align: 'center', size: 6 })
+      drawText(hint + ' — ■ 입장', 80, 224, { color: '#fff', align: 'center', size: 6 })
+    } else {
+      drawText('◀ ▶ 이동  ■ 내 집', 80, 228, { color: '#444', align: 'center', size: 5 })
     }
   }
 
-  // ── Canvas tap to enter house ───────────────────────────
+  // ── Canvas tap to enter house (fallback) ────────────────
   const canvas = document.getElementById('game-canvas')
   function onTap(e) {
     e.preventDefault()
     if (!nearHouse) return
-    if (nearHouse.id === state.userId) {
-      navigate('myroom')
-    } else {
-      navigate('otherroom', { targetUser: nearHouse })
-    }
+    if (nearHouse.id === state.userId) navigate('myroom')
+    else navigate('otherroom', { targetUser: nearHouse })
   }
   canvas.addEventListener('click', onTap)
   canvas.addEventListener('touchend', onTap, { passive: false })
@@ -139,6 +140,7 @@ export function mountStreet() {
   startLoop(tick, render)
 
   return () => {
+    unbindController()
     window.removeEventListener('keydown', onKeyDown)
     window.removeEventListener('keyup', onKeyUp)
     canvas.removeEventListener('click', onTap)
@@ -146,13 +148,4 @@ export function mountStreet() {
     overlay.innerHTML = ''
     btnRow.innerHTML = ''
   }
-}
-
-function makeBtn(icon, label, disabled, onClick) {
-  const btn = document.createElement('button')
-  btn.className = 'action-btn'
-  btn.disabled = disabled
-  btn.innerHTML = icon + (label ? `<span class="btn-label">${label}</span>` : '')
-  if (onClick) btn.onclick = onClick
-  return btn
 }

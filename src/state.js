@@ -1,6 +1,6 @@
 // src/state.js
 const KEY = 'who-pooped-state'
-const POOP_COOLDOWN_MS = 60 * 60 * 1000 // 1 hour
+const POOP_COOLDOWN_MS = 10 * 60 * 1000 // 10 minutes
 
 const DEFAULTS = {
   userId: null,

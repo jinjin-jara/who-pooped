@@ -4,18 +4,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Who Pooped?</title>
+  <style>@import url('https://cdn.jsdelivr.net/gh/MonadABXY/mona-font/web/mona.css');</style>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div id="phone-frame">
-    <div id="phone-top">
-      <div id="speaker"></div>
+    <!-- Chain loop at top -->
+    <div id="chain-loop"></div>
+
+    <!-- Top logo -->
+    <div id="device-top">
+      <span id="device-logo">WHO POOPED?</span>
     </div>
-    <div id="screen-area">
-      <canvas id="game-canvas"></canvas>
-      <div id="ui-overlay"></div>
+
+    <!-- Screen bezel area -->
+    <div id="screen-bezel">
+      <div id="screen-area">
+        <canvas id="game-canvas"></canvas>
+        <div id="ui-overlay"></div>
+      </div>
     </div>
-    <div id="phone-bottom">
+
+    <!-- Decorative divider -->
+    <div id="deco-row">
+      <span class="deco-dot"></span>
+      <span class="deco-dot"></span>
+      <span class="deco-dot"></span>
+    </div>
+
+    <!-- Fixed 3-button controller: ◀ ■ ▶ -->
+    <div id="controller">
+      <button id="btn-left" class="ctrl-btn">◀</button>
+      <button id="btn-action" class="ctrl-btn ctrl-btn-center"></button>
+      <button id="btn-right" class="ctrl-btn">▶</button>
+    </div>
+
+    <!-- Hidden dynamic btn-row (used by screens internally) -->
+    <div id="phone-bottom" style="display:none">
       <div id="btn-row" class="btn-row"></div>
     </div>
   </div>

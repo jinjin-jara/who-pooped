@@ -31,7 +31,7 @@ export async function fetchUserByNickname(nickname) {
     .from('users')
     .select('*')
     .eq('nickname', nickname)
-    .single()
+    .maybeSingle()
   return data ?? null
 }
 
@@ -84,4 +84,27 @@ export async function cleanAllPoops(houseOwnerId) {
     .eq('house_owner_id', houseOwnerId)
     .eq('is_cleaned', false)
   if (error) throw error
+}
+
+// ── Notes ─────────────────────────────────────────────────
+
+export async function fetchNotes(houseOwnerId) {
+  const { data, error } = await supabase
+    .from('notes')
+    .select('*')
+    .eq('house_owner_id', houseOwnerId)
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error) throw error
+  return data
+}
+
+export async function createNote(houseOwnerId, senderId, senderNickname, message) {
+  const { data, error } = await supabase
+    .from('notes')
+    .insert({ house_owner_id: houseOwnerId, sender_id: senderId, sender_nickname: senderNickname, message })
+    .select()
+    .single()
+  if (error) throw error
+  return data
 }
