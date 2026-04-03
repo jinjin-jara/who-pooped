@@ -1,6 +1,13 @@
 /* style.css */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body {
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 body {
   background: #1a1a2e;
   display: flex;
