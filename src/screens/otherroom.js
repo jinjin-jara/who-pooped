@@ -1,5 +1,5 @@
 // src/screens/otherroom.js
-import { getState, canPoop, recordPoop, poopCooldownRemaining } from '../state.js'
+import { getState, setState, canPoop, recordPoop, poopCooldownRemaining } from '../state.js'
 import { createPoop, fetchPoopsInHouse } from '../db.js'
 import { joinRoomChannel, leaveRoomChannel, broadcastPoop, broadcastKick } from '../realtime.js'
 import { drawRoomBackground, drawPoops, drawCharacter } from '../canvas/scenes/room.js'
@@ -41,6 +41,19 @@ export function mountOtherRoom({ targetUser }) {
     renderButtons()
   }
   refreshPoops()
+
+  // Auto-deposit if player carried a poop here from their own room
+  const entryState = getState()
+  if (entryState.holdingPoop && state.userId !== targetUser.id) {
+    setState({ holdingPoop: false })
+    // Brief delay so the screen renders first
+    setTimeout(async () => {
+      await createPoop(targetUser.id, state.userId)
+      recordPoop()
+      broadcastPoop(targetUser.id, state.userId)
+      await refreshPoops()
+    }, 200)
+  }
 
   // Cooldown interval to update button label
   const cooldownInterval = setInterval(() => renderButtons(), 1000)
