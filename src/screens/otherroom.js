@@ -24,6 +24,7 @@ export function mountOtherRoom({ targetUser }) {
   let poops       = []
   let notes       = []
   let ownerPresent = false
+  let othersInRoom = []  // other users present via realtime
   let visitorAction = 'idle'
   let ownerAction   = 'idle'
   let kickedTimer   = 0
@@ -81,6 +82,8 @@ export function mountOtherRoom({ targetUser }) {
     onClean:    ()         => refreshPoops(),
     onPresence: (list)     => {
       ownerPresent = list.some(p => p.userId === targetUser.id)
+      // Track other visitors (not me, not owner)
+      othersInRoom = list.filter(p => p.userId !== state.userId && p.userId !== targetUser.id)
       buildMenu()
     },
     onKick:     (targetId) => {
@@ -254,10 +257,19 @@ export function mountOtherRoom({ targetUser }) {
                  : myIdle
     drawCharacter(myType, myAnim.currentFrame(), VISITOR_X, CHAR_Y, state.nickname)
 
+    // Owner
     if (ownerPresent) {
       const owAnim = ownerAction === 'kick' ? ownerKick : ownerIdle
       drawCharacter(ownerType, owAnim.currentFrame(), OWNER_X, CHAR_Y, targetUser.nickname)
     }
+
+    // Other visitors
+    othersInRoom.forEach((other, i) => {
+      const ox = 70 + i * 24
+      const charType = other.characterType || 'cat'
+      const otherIdle = SPRITES[charType]?.idle?.[0] || SPRITES.cat.idle[0]
+      drawCharacter(charType, otherIdle, ox, CHAR_Y, other.nickname)
+    })
 
     // Room name header
     drawRect(0, 0, 160, 14, 'rgba(0,0,0,0.5)')

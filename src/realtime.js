@@ -39,8 +39,9 @@ export function joinRoomChannel(roomOwnerId, callbacks = {}) {
     .subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         await channel.track({
-          userId:   state.userId,
-          nickname: state.nickname,
+          userId:        state.userId,
+          nickname:      state.nickname,
+          characterType: state.characterType,
         })
       }
     })

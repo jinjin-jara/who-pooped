@@ -25,6 +25,7 @@ export function mountMyRoom() {
 
   let poops = []
   let notes = []
+  let visitorsInRoom = []
   let action = 'idle'
   let cleanFlash = 0
   let cleanTimer = 0  // ms remaining for clean animation
@@ -60,6 +61,9 @@ export function mountMyRoom() {
   joinRoomChannel(state.userId, {
     onPoop: () => refreshPoops(),
     onClean: () => refreshPoops(),
+    onPresence: (list) => {
+      visitorsInRoom = list.filter(p => p.userId !== state.userId)
+    },
   })
 
   function buildMenu() {
@@ -173,6 +177,14 @@ export function mountMyRoom() {
       const swing = Math.sin(Date.now() / 150) * 8
       drawMop(CHAR_X + 22 + swing, CHAR_Y + 4)
     }
+
+    // Visitors in my room
+    visitorsInRoom.forEach((v, i) => {
+      const vx = 90 + i * 24
+      const charType = v.characterType || 'cat'
+      const vIdle = SPRITES[charType]?.idle?.[0] || SPRITES.cat.idle[0]
+      drawCharacter(charType, vIdle, vx, CHAR_Y, v.nickname)
+    })
 
     if (cleanFlash > 0) {
       drawRect(0, 140, 160, 100, `rgba(255,255,255,${(cleanFlash / 8) * 0.3})`)
